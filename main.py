@@ -195,7 +195,10 @@ async def ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("IP не задан в .env")
         return
 
-    await update.message.reply_text(f"{SERVER_IP}")
+    await update.message.reply_text(
+        f"`{SERVER_IP}`",
+        parse_mode="Markdown"
+    )
 
 
 @allowed_chat
