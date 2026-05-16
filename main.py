@@ -1,5 +1,4 @@
 import os
-import asyncio
 import logging
 
 from telegram import Update
@@ -59,20 +58,17 @@ def allowed_chat(func):
 
 
 # --------------------
-# RCON WRAPPER
+# RCON (FIXED - SYNC ONLY)
 # --------------------
-async def rcon(command: str):
+def rcon(command: str):
 
-    def _run():
-        with MCRcon(
-            RCON_HOST,
-            RCON_PASS,
-            port=RCON_PORT,
-            timeout=5
-        ) as m:
-            return m.command(command)
-
-    return await asyncio.to_thread(_run)
+    with MCRcon(
+        RCON_HOST,
+        RCON_PASS,
+        port=RCON_PORT,
+        timeout=5
+    ) as m:
+        return m.command(command)
 
 
 # --------------------
@@ -87,7 +83,7 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def online(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
-        res = await rcon("list")
+        res = rcon("list")
 
         if ": " not in res:
             await update.message.reply_text("Не удалось получить список")
@@ -122,7 +118,7 @@ async def say(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = " ".join(context.args).replace("\n", " ")
 
     try:
-        await rcon(f"say {msg}")
+        rcon(f"say {msg}")
         await update.message.reply_text("Отправлено")
 
     except Exception as e:
@@ -141,7 +137,7 @@ async def kick(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reason = " ".join(context.args[1:]) or "Кик через Telegram"
 
     try:
-        res = await rcon(f"kick {player} {reason}")
+        res = rcon(f"kick {player} {reason}")
 
         if res and "no player was found" in res.lower():
             await update.message.reply_text(f"{player} не найден")
@@ -163,7 +159,7 @@ async def exec_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cmd = " ".join(context.args)
 
     try:
-        res = await rcon(cmd)
+        res = rcon(cmd)
         await update.message.reply_text(res[:4000] if res else "OK")
 
     except Exception as e:
@@ -177,12 +173,13 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text("Сохраняю мир...")
 
-        await rcon("save-all")
-        await rcon("say Сервер перезапускается через Telegram")
+        rcon("save-all")
+        rcon("say Сервер перезапускается через Telegram")
 
+        import asyncio
         await asyncio.sleep(10)
 
-        await rcon("stop")
+        rcon("stop")
 
         await update.message.reply_text("Сервер остановлен")
 
@@ -198,7 +195,7 @@ async def ip(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("IP не задан в .env")
         return
 
-    await update.message.reply_text(f"{SERVER_IP}")
+    await update.message.reply_text(f"IP сервера:\n{SERVER_IP}")
 
 
 @allowed_chat
@@ -211,6 +208,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @allowed_chat
 async def getid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     await update.message.reply_text(
         f"Chat ID: {update.effective_chat.id}"
     )
