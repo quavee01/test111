@@ -84,29 +84,31 @@ async def online(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         res = rcon("list")
-
+        
+        # Разбиваем по двоеточию и берем последнюю часть
         if ":" not in res:
-            await update.message.reply_text("Не удалось получить список")
+            await update.message.reply_text(f"Неожиданный формат: {res}")
             return
-
-        players = res.split(": ")[1].strip()
-
-        if not players:
+        
+        players_part = res.split(":")[-1].strip()
+        
+        if not players_part:
             await update.message.reply_text("Никого нет онлайн")
             return
-
-        players = "\n".join(
-            p.strip() for p in players.split(",") if p.strip()
-        )
-
-        await update.message.reply_text(
-            f"Игроки онлайн:\n\n{players}"
-        )
-
+        
+        # Разбиваем по запятым и убираем пустые строки
+        players_list = [p.strip() for p in players_part.split(",") if p.strip()]
+        
+        if not players_list:
+            await update.message.reply_text("Никого нет онлайн")
+            return
+        
+        players_text = "\n".join(players_list)
+        await update.message.reply_text(f"Игроки онлайн:\n\n{players_text}")
+        
     except Exception as e:
         logging.warning(f"online error: {e}")
         await update.message.reply_text("Ошибка подключения")
-
 
 @allowed_chat
 async def say(update: Update, context: ContextTypes.DEFAULT_TYPE):
