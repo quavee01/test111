@@ -85,14 +85,29 @@ async def online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         res = rcon("list")
         
-        # ВЫВОДИМ ТОЧНЫЙ ОТВЕТ
-        await update.message.reply_text(f"RAW ответ: '{res}'")
+        # Ищем "players online:" и берем всё после него
+        if "players online:" in res:
+            players_part = res.split("players online:")[1].strip()
+        else:
+            await update.message.reply_text(f"Не удалось распарсить: {res}")
+            return
         
-        # Также покажем длину и символы
-        await update.message.reply_text(f"Длина: {len(res)}, Символы: {repr(res)}")
+        if not players_part:
+            await update.message.reply_text("Никого нет онлайн")
+            return
+        
+        # Разбиваем по запятым
+        players_list = [p.strip() for p in players_part.split(",") if p.strip()]
+        
+        if not players_list:
+            await update.message.reply_text("Никого нет онлайн")
+            return
+        
+        players_text = "\n".join(players_list)
+        await update.message.reply_text(f"Игроки онлайн:\n\n{players_text}")
         
     except Exception as e:
-        logging.warning(f"online error: {e}")
+        logging.error(f"online error: {e}", exc_info=True)
         await update.message.reply_text(f"Ошибка: {e}")
 
 @allowed_chat
