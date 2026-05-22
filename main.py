@@ -85,7 +85,7 @@ async def online(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         res = rcon("list")
 
-        if ": " not in res:
+        if ":" not in res:
             await update.message.reply_text("Не удалось получить список")
             return
 
@@ -181,7 +181,7 @@ async def restart(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         rcon("stop")
 
-        await update.message.reply_text("Сервер остановлен")
+        await update.message.reply_text("Сервер перезапускается")
 
     except Exception as e:
         logging.warning(f"restart error: {e}")
